@@ -11,11 +11,13 @@ import {
   ModalCloseButton,
   ModalFooter,
   Button,
-  useDisclosure
+  useDisclosure,
+  UnorderedList,
+  ListItem
 } from "@chakra-ui/react";
 import { apiUrl, Service } from "@hex-labs/core";
 import axios from "axios";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 type Props = {
   user: any;
@@ -40,34 +42,80 @@ type ModalProps = {
 // the hexathons that the user has applied to. You can use the /applications endpoint of the registration service to do this
 // and the /hexathons endpoint of the hexathons service to get a list of all the hexathons.
 
-const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, user }) => {
+const UserModal: React.FC<ModalProps> = (props: ModalProps) => {
+
+  // State variable and setter for hexathons
+  const [hexathons, setHexathons] = useState<any[]>([]);
+  
+  const getHexathons = async () => {
+    try {
+      // fetches all hexathons
+      const response = await axios.get(apiUrl(Service.HEXATHONS, "/hexathons"));
+      const allHexathons = response.data;
+      // fetches all applications for the specific user for each hexathon
+      // uses Promise for series of async calls
+      const userApps = await Promise.all(allHexathons.map(async (hexathon: any) => {
+        const res = await axios.get(apiUrl(Service.REGISTRATION, "/applications"), {
+          params: {
+            hexathon: hexathon.id,
+            userId: props.user.userId
+          }
+        });
+        // returns hexathon if user has applied
+        return res.data.length > 0 ? hexathon : null;
+      }));
+      // filters for non-null hexathons
+      const filteredHexathons = userApps.filter((hexathon) => hexathon !== null);
+      setHexathons(filteredHexathons);
+
+    } catch (error) {
+      console.error("Error: " + error);
+    }
+
+  }
+
+  useEffect(() => {
+    if (props.isOpen) {
+      getHexathons();
+    }
+  }, [props.isOpen]);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={props.isOpen} onClose={props.onClose}>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>User Information</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <Text><strong>Name:</strong> {`${user.name.first} ${user.name.last}`}</Text>
-          <Text><strong>Email:</strong> {user.email}</Text>
-          <Text><strong>Phone Number:</strong> {user.phoneNumber || "Not provided"}</Text>
-          <Text><strong>User ID:</strong> {user.userId}</Text>
+          <Text><strong>Name:</strong> {`${props.user.name.first} ${props.user.name.last}`}</Text>
+          <Text><strong>Email:</strong> {props.user.email}</Text>
+          <Text><strong>Phone Number:</strong> {props.user.phoneNumber || "Not provided"}</Text>
+          <Text><strong>User ID:</strong> {props.user.userId}</Text>
+          <Box>
+            <Text fontWeight="bold" mb={2}>Applied Hexathons:</Text>
+            { hexathons.length > 0  ?
+            (<UnorderedList>
+              {hexathons.map((hexathon) => (
+                <ListItem key={hexathon.id}>
+                  {hexathon.name}
+                </ListItem>
+              ))}
+            </UnorderedList>) : <Text>No hexathons applied</Text>
+            }
+          </Box>
         </ModalBody>
         <ModalFooter>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={props.onClose}>Close</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
   );
 };
 
-const getUsers = async (user: any) => {
-// complete
-}
+
 
 const UserCard: React.FC<Props> = (props: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-
 
   return (
     <>

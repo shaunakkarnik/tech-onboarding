@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { apiUrl, Service } from "@hex-labs/core";
-import { filter, SimpleGrid, Text, Button } from "@chakra-ui/react";
+import { filter, SimpleGrid, Text, Button, HStack } from "@chakra-ui/react";
 import axios from "axios";
 import UserCard from "./UserCard";
 
@@ -72,10 +72,12 @@ const UserData: React.FC = () => {
 
   return (
     <>
-      <Text fontSize="4xl">Hexlabs Users</Text>
-      <Text fontSize="2xl">This is an example of a page that makes an API call to the Hexlabs API to get a list of users.</Text>
+      <HStack>
+        <Text fontSize="4xl">Hexlabs Users</Text>
+        <Button onClick={sortByFirstName}>Sort by First Name</Button>
+      </HStack>
 
-      <Button onClick={sortByFirstName}>Sort by First Name</Button>
+      <Text fontSize="2xl">This is an example of a page that makes an API call to the Hexlabs API to get a list of users.</Text>
 
       <SimpleGrid columns={[2, 3, 5]} spacing={6} padding={10}>
 
