@@ -3,10 +3,27 @@ import {
   Flex,
   HStack,
   Text,
+  Modal,
+  ModalBody,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalFooter,
+  Button,
+  useDisclosure
 } from "@chakra-ui/react";
+import { apiUrl, Service } from "@hex-labs/core";
+import axios from "axios";
 import React from "react";
 
 type Props = {
+  user: any;
+};
+
+type ModalProps = {
+  isOpen: boolean;
+  onClose: () => void;
   user: any;
 };
 
@@ -23,9 +40,37 @@ type Props = {
 // the hexathons that the user has applied to. You can use the /applications endpoint of the registration service to do this
 // and the /hexathons endpoint of the hexathons service to get a list of all the hexathons.
 
+const UserModal: React.FC<ModalProps> = ({ isOpen, onClose, user }) => {
+  return (
+    <Modal isOpen={isOpen} onClose={onClose}>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>User Information</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <Text><strong>Name:</strong> {`${user.name.first} ${user.name.last}`}</Text>
+          <Text><strong>Email:</strong> {user.email}</Text>
+          <Text><strong>Phone Number:</strong> {user.phoneNumber || "Not provided"}</Text>
+          <Text><strong>User ID:</strong> {user.userId}</Text>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={onClose}>Close</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
+
+const getUsers = async (user: any) => {
+// complete
+}
+
 const UserCard: React.FC<Props> = (props: Props) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
 
   return (
+    <>
     <Box
     borderWidth="1px"
     rounded="lg"
@@ -33,6 +78,7 @@ const UserCard: React.FC<Props> = (props: Props) => {
     height="175px"
     fontWeight="bold"
     alignItems="center"
+    onClick={onOpen}
     >
       <Flex padding="2" flexDirection="column">
         <HStack align="flex-end" justify="space-between">
@@ -48,6 +94,9 @@ const UserCard: React.FC<Props> = (props: Props) => {
         </Text>
       </Flex>
     </Box>
+
+    <UserModal isOpen={isOpen} onClose={onClose} user={props.user} />
+    </>
   );
 };
 
